@@ -1,4 +1,4 @@
-name: CI
+name: CI-2
 
 on:
   push:
@@ -7,8 +7,11 @@ on:
     branches: [ main ]
 
 jobs:
-  setup:
+  install:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./example-app
     steps:
       - uses: actions/checkout@v3
       
@@ -23,12 +26,14 @@ jobs:
           echo "$HOME/.local/bin" >> $GITHUB_PATH
           
       - name: Install Dependencies
-        working-directory: ./example-app
         run: poetry install --no-root
 
   static_tests:
-    needs: setup
+    needs: install
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./example-app
     strategy:
       matrix:
         test_type: ['lint', 'formatter', 'security']
@@ -46,16 +51,17 @@ jobs:
           echo "$HOME/.local/bin" >> $GITHUB_PATH
           
       - name: Install Dependencies
-        working-directory: ./example-app
         run: poetry install --no-root
         
       - name: Run ${{ matrix.test_type }}
-        working-directory: ./example-app
         run: poetry run task ${{ matrix.test_type }}
 
   unit_tests:
-    needs: setup
+    needs: install
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./example-app
     steps:
       - uses: actions/checkout@v3
       
@@ -70,9 +76,7 @@ jobs:
           echo "$HOME/.local/bin" >> $GITHUB_PATH
           
       - name: Install Dependencies
-        working-directory: ./example-app
         run: poetry install --no-root
         
       - name: Run Unit Tests
-        working-directory: ./example-app
         run: poetry run task test
